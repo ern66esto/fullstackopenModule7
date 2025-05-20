@@ -1,15 +1,19 @@
-import { useState } from "react"
+import { useCallback, useState } from "react"
 
-const useField = (type) => {
+export const useField = (type) => {
   const [value, setValue] = useState('')
 
-  onChange = (event) => {
+  const onChange = (event) => {
     setValue(event.target.value)
   }
+
+  const reset = useCallback(() => {
+    setValue('')
+  }, [setValue])
 
   return {
     type,
     value,
-    onChange
+    onChange, reset
   }
 }
