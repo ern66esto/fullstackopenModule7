@@ -118,7 +118,7 @@ const App = () => {
             handleLogin={handleLogin}
           />
           {/* <button onClick={() => setLoginVisible(false)}>cancel</button> */}
-          <Button onClick={() => setLoginVisible(false)} >cancel</Button>
+          <Button className='mt-2' onClick={() => setLoginVisible(false)} >cancel</Button>
         </div>
       </div>
     )

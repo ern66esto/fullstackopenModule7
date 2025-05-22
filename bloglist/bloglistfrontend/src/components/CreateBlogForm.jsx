@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Container, Form, Button } from 'react-bootstrap'
+
 const CreateBlogForm = ({ createBlog }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
@@ -16,23 +18,56 @@ const CreateBlogForm = ({ createBlog }) => {
   }
 
   return (
-    <div>
+    // <div>
+    //   <h2>create new</h2>
+    //   <form onSubmit={handleSubmit}>
+    //     <div>
+    //       title: <input value={title} onChange={event => setTitle(event.target.value)} placeholder='write title here'/>
+    //     </div>
+    //     <div>
+    //       author: <input value={author} onChange={event => setAuthor(event.target.value)} placeholder='write author here'/>
+    //     </div>
+    //     <div>
+    //       url: <input value={url} onChange={event => setUrl(event.target.value)} placeholder='write url here'/>
+    //     </div>
+    //     <div>
+    //       <button type="submit">create</button>
+    //     </div>
+    //   </form>
+    // </div>
+    <Container>
       <h2>create new</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          title: <input value={title} onChange={event => setTitle(event.target.value)} placeholder='write title here'/>
-        </div>
-        <div>
-          author: <input value={author} onChange={event => setAuthor(event.target.value)} placeholder='write author here'/>
-        </div>
-        <div>
-          url: <input value={url} onChange={event => setUrl(event.target.value)} placeholder='write url here'/>
-        </div>
-        <div>
-          <button type="submit">create</button>
-        </div>
-      </form>
-    </div>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group>
+          <Form.Label>title</Form.Label>
+          <Form.Control
+            type='text'
+            value={title}
+            onChange={event => setTitle(event.target.value)}
+            placeholder='write title here'
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>author</Form.Label>
+          <Form.Control
+            type='text'
+            value={author}
+            onChange={event => setAuthor(event.target.value)}
+            placeholder='write author here'
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>url</Form.Label>
+          <Form.Control
+            type='text'
+            value={url}
+            onChange={event => setUrl(event.target.value)}
+            placeholder='write url here'
+          />
+        </Form.Group>
+        <Button className='mt-2' variant='primary' type='submit'>create</Button>
+      </Form>
+    </Container>
   )
 }
 

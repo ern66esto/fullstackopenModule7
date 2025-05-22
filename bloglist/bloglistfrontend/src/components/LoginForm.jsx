@@ -3,18 +3,6 @@ import { Table, Form, Button } from 'react-bootstrap'
 
 const LoginForm = ({ handleLogin,handleUsernameChange,handlePasswordChange,username,password }) => {
   return (
-    // <form onSubmit={handleLogin}>
-    //   <div>
-    //       username
-    //     <input data-testid='username' value={username} onChange={handleUsernameChange}/>
-    //   </div>
-    //   <div>
-    //       password
-    //     <input type='password' data-testid='password' value={password} name='Password' onChange={handlePasswordChange} />
-    //   </div>
-    //   <button type='submit'>login</button>
-    // </form>
-    
     <Form onSubmit={handleLogin}>
       <Form.Group>
         <Form.Label>username</Form.Label>
@@ -32,7 +20,7 @@ const LoginForm = ({ handleLogin,handleUsernameChange,handlePasswordChange,usern
           onChange={handlePasswordChange}
         />
       </Form.Group>
-      <Button variant='primary' type='submit'>login</Button>
+      <Button className='mt-2' variant='primary' type='submit'>login</Button>
     </Form>
   )
 }
