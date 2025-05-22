@@ -1,10 +1,10 @@
-import { Alert } from 'react-bootstrap'
+import { Alert } from 'react-bootstrap';
 
 const Notification = ({ messageText }) => {
-  const message = messageText.message
-  const styleClass = messageText.styleClassName
+  const message = messageText.message;
+  const styleClass = messageText.styleClassName;
   if (message === null || message === '') {
-    return null
+    return null;
   }
 
   return (
@@ -12,11 +12,9 @@ const Notification = ({ messageText }) => {
     //   {message}
     // </div>
     <div>
-      <Alert variant={styleClass}>
-        {message}
-      </Alert>
+      <Alert variant={styleClass}>{message}</Alert>
     </div>
-  )
-}
+  );
+};
 
-export default Notification
+export default Notification;

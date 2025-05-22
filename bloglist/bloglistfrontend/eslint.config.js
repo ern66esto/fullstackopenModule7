@@ -1,10 +1,10 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import pluginReact from 'eslint-plugin-react'
-import pluginVitest from '@vitest/eslint-plugin'
-import { defineConfig } from 'eslint/config'
-
-
+import js from '@eslint/js';
+import globals from 'globals';
+import pluginReact from 'eslint-plugin-react';
+import pluginVitest from '@vitest/eslint-plugin';
+import { defineConfig } from 'eslint/config';
+import configPrettier from 'eslint-config-prettier';
+import pluginPrettier from 'eslint-plugin-prettier';
 
 export default defineConfig([
   {
@@ -12,15 +12,21 @@ export default defineConfig([
   },
   {
     files: ['**/*.{js,mjs,cjs,jsx}'],
-    plugins: { js, react: pluginReact, vitest: pluginVitest },
-    extends: ['js/recommended'],
+    plugins: { js, react: pluginReact, vitest: pluginVitest, prettier: pluginPrettier },
     languageOptions: {
       globals: {
         ...globals.browser,
         ...globals.es2021,
         'vitest-globals/env': true,
-        'jsdom': true
-      }
+        jsdom: true,
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
     },
     settings: {
       react: {
@@ -28,21 +34,20 @@ export default defineConfig([
       },
     },
     rules: {
+      ...js.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      'no-unused-vars': 0,
-      'indent': ['error', 2],
-      'quotes': ['error', 'single'],
-      'semi': ['error', 'never'],
-      'eqeqeq': 'error',
-      'no-trailing-spaces': 'error',
-      'object-curly-spacing': [
-        'error', 'always'
+      'no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrors: 'none',
+        },
       ],
-      'arrow-spacing': [
-        'error', { 'before': true, 'after': true }
-      ],
-      'no-console': 0,
+      'no-console': 'warn',
+      eqeqeq: 'error',
+      'prettier/prettier': 'error',
     },
   },
   { files: ['**/*.{js,mjs,cjs,jsx}'], languageOptions: { globals: globals.browser } },
@@ -55,7 +60,9 @@ export default defineConfig([
     },
     rules: {
       'react/prop-types': 'off',
+      'react/jsx-uses-vars': 'error',
     },
   },
-  pluginReact.configs.flat['jsx-runtime']
-])
+  pluginReact.configs.flat['jsx-runtime'],
+  configPrettier,
+]);
