@@ -1,0 +1,25 @@
+.success {
+    background-color: darkgray;
+    padding: 10px;
+    border: 2px solid green;
+    border-radius: 5px;
+    margin: 10px 0;
+    color: darkgreen;
+}
+   
+.danger {
+    background-color: darkgray;
+    padding: 10px;
+    border: 2px solid red;
+    border-radius: 5px;
+    margin: 10px 0;
+    color: darkred;    
+}
+
+/* .blogStyle {
+    padding-top: 10;
+    padding-left: 2;
+    border: 'solid';
+    border-width: 1;
+    margin-bottom: 5;
+} */
