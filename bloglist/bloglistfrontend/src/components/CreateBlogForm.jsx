@@ -18,23 +18,6 @@ const CreateBlogForm = ({ createBlog }) => {
   }
 
   return (
-    // <div>
-    //   <h2>create new</h2>
-    //   <form onSubmit={handleSubmit}>
-    //     <div>
-    //       title: <input value={title} onChange={event => setTitle(event.target.value)} placeholder='write title here'/>
-    //     </div>
-    //     <div>
-    //       author: <input value={author} onChange={event => setAuthor(event.target.value)} placeholder='write author here'/>
-    //     </div>
-    //     <div>
-    //       url: <input value={url} onChange={event => setUrl(event.target.value)} placeholder='write url here'/>
-    //     </div>
-    //     <div>
-    //       <button type="submit">create</button>
-    //     </div>
-    //   </form>
-    // </div>
     <Container>
       <h2>create new</h2>
       <Form onSubmit={handleSubmit}>
@@ -65,7 +48,7 @@ const CreateBlogForm = ({ createBlog }) => {
             placeholder='write url here'
           />
         </Form.Group>
-        <Button className='mt-2' variant='primary' type='submit'>create</Button>
+        <Button className='mt-2 mb-2' variant='primary' type='submit'>create</Button>
       </Form>
     </Container>
   )

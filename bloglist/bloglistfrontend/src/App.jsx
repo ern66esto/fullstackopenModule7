@@ -106,7 +106,6 @@ const App = () => {
     return (
       <div>
         <div style={hideWhenVisible}>
-          {/* <button onClick={() => setLoginVisible(true)} >login</button> */}
           <Button onClick={() => setLoginVisible(true)} >login</Button>
         </div>
         <div style={showWhenVisible} >
@@ -117,8 +116,7 @@ const App = () => {
             handlePasswordChange={({ target }) => setPassword(target.value)}
             handleLogin={handleLogin}
           />
-          {/* <button onClick={() => setLoginVisible(false)}>cancel</button> */}
-          <Button className='mt-2' onClick={() => setLoginVisible(false)} >cancel</Button>
+          <Button className='mt-2' variant='outline-secondary' onClick={() => setLoginVisible(false)} >cancel</Button>
         </div>
       </div>
     )

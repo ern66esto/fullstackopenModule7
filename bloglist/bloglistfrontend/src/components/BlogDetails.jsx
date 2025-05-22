@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
+import { Button } from 'react-bootstrap'
 
 const BlogDetails = ({ blog, handleLikes, handleDelete }) => {
   const [showDetails, setShowDetails] = useState(false)
@@ -18,17 +19,16 @@ const BlogDetails = ({ blog, handleLikes, handleDelete }) => {
   return (
     <div data-testid='blogDiv' style={blogStyle}>
       <p data-testid='blogTitle'>{blog.title}
-
-        <button onClick={toggleDetails} style={{ marginLeft:'10px' }}>
-          {showDetails ? 'hide' : 'view'}
-        </button>
+        <Button className='ms-3' variant='light' onClick={toggleDetails}>{showDetails ? 'hide' : 'view'}</Button>
       </p>
       {showDetails &&
             <div >
               <p>{blog.url}</p>
-              <p data-testid='blogLikes'>likes {blog.likes} <button onClick={() => handleLikes(blog)}>like</button> </p>
+              <p data-testid='blogLikes'>likes {blog.likes}
+                <Button className='ms-3' variant='light' onClick={() => handleLikes(blog)}>like</Button>
+              </p>
               <p>{blog.author}</p>
-              <button style={{ background:'cornflowerblue' }} onClick={() => handleDelete(blog)} >remove</button>
+              <Button variant='primary' onClick={() => handleDelete(blog)}>remove</Button>
             </div>
       }
     </div>

@@ -1,6 +1,7 @@
 import CreateBlogForm from './CreateBlogForm'
 import Togglable from './Togglable'
 import BlogDetails from './BlogDetails'
+import { Button } from 'react-bootstrap'
 
 const BlogForm = (props) =>
 {
@@ -18,7 +19,9 @@ const BlogForm = (props) =>
   return (
     <div>
       <div>
-        <div>{user.name} logged in. <button onClick={() => handleLogout() }>logout</button>  </div>
+        <div>{user.name} logged in.
+          <Button variant='outline-secondary' onClick={() => handleLogout() }>logout</Button>
+        </div>
       </div>
       <br/>
       <div>

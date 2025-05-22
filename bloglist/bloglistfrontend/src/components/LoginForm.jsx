@@ -15,6 +15,7 @@ const LoginForm = ({ handleLogin,handleUsernameChange,handlePasswordChange,usern
       <Form.Group>
         <Form.Label>password</Form.Label>
         <Form.Control
+          type='password'
           data-testid='password'
           value={password}
           onChange={handlePasswordChange}
