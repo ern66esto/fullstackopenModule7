@@ -4,21 +4,19 @@ import loginService from './services/login';
 import LoginForm from './components/LoginForm';
 import BlogForm from './components/BlogForm';
 import { Button } from 'react-bootstrap';
+import { useDispatch } from 'react-redux';
+import { setNotification, clearNotification } from './features/notification/notificationSlice';
+import MessageNotification from '../src/components/Notification';
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
-  const [message, setMessage] = useState('');
   const [loginVisible, setLoginVisible] = useState(false);
   const createBlogFormRef = useRef();
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    // blogService.getAll().then(blogs =>
-    //   setBlogs( blogs )
-    // )
-  }, []);
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser');
     if (loggedUserJSON) {
@@ -37,6 +35,15 @@ const App = () => {
           setUser(null);
           setUsername('');
           setPassword('');
+          dispatch(
+            setNotification({
+              message: 'Session expired or invalid token. Please log in again',
+              styleClassName: 'danger',
+            }),
+          );
+          setTimeout(() => {
+            dispatch(clearNotification());
+          }, 5000);
         }
       };
       fetchData();
@@ -55,7 +62,15 @@ const App = () => {
       setUsername('');
       setPassword('');
     } catch (error) {
-      sendMessage(`Wrong credentials ${error.message}`, 'danger');
+      dispatch(
+        setNotification({
+          message: `Wrong credentials ${error.message}`,
+          styleClassName: 'danger',
+        }),
+      );
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
     }
   };
 
@@ -67,32 +82,27 @@ const App = () => {
     setPassword('');
   };
 
-  // const handleUsernameChange = (event) => {
-  //   setUsername(event.target.value);
-  // };
-
-  // const handlePasswordChange = (event) => {
-  //   setPassword(event.target.value);
-  // };
-
   const addBlog = async (blogObject) => {
     try {
       createBlogFormRef.current.toggleVisibility();
       const response = await blogService.create(blogObject);
-      sendMessage(`a new blog ${response.title} ! by ${response.author} added`, 'success');
+      dispatch(
+        setNotification({
+          message: `a new blog ${response.title} ! by ${response.author} added`,
+          styleClassName: 'success',
+        }),
+      );
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
+
       setBlogs(blogs.concat(response));
     } catch (error) {
-      sendMessage(error.message, 'danger');
+      dispatch(setNotification({ message: error.message, styleClassName: 'danger' }));
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
     }
-  };
-
-  const sendMessage = (...parameters) => {
-    const [message, styleClass] = parameters;
-    const sendMessage = { message: message, styleClassName: styleClass };
-    setMessage(sendMessage);
-    setTimeout(() => {
-      setMessage({ message: '', styleClassName: '' });
-    }, 3000);
   };
 
   const loginForm = () => {
@@ -136,7 +146,10 @@ const App = () => {
       const response = await blogService.update(blogObject.id, blogToUpdate);
       setBlogs(blogs.map((blog) => (blog.id === response.id ? response : blog)));
     } catch (error) {
-      sendMessage(error.message, 'danger');
+      dispatch(setNotification({ message: error.message, styleClassName: 'danger' }));
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
     }
   };
 
@@ -144,10 +157,21 @@ const App = () => {
     if (window.confirm(`Remove blog ${blogObject.title} by ${blogObject.author}`)) {
       try {
         await blogService.remove(blogObject.id);
-        sendMessage(`blog ${blogObject.title} by ${blogObject.author} deleted`, 'success');
+        dispatch(
+          setNotification({
+            message: `blog ${blogObject.title} by ${blogObject.author} deleted`,
+            styleClassName: 'success',
+          }),
+        );
+        setTimeout(() => {
+          dispatch(clearNotification());
+        }, 5000);
         setBlogs((originalBlogs) => originalBlogs.filter((blog) => blog.id !== blogObject.id));
       } catch (error) {
-        sendMessage(error.message, 'danger');
+        dispatch(setNotification({ message: error.message, styleClassName: 'danger' }));
+        setTimeout(() => {
+          dispatch(clearNotification());
+        }, 5000);
       }
     }
   };
@@ -165,7 +189,7 @@ const App = () => {
   return (
     <div className="container">
       <h2>blogs</h2>
-      {message && <Notification messageText={message} />}
+      <MessageNotification />
       {!user && loginForm()}
       {user && <BlogForm {...BlogFormProps} />}
     </div>

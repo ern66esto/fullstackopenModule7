@@ -1,20 +1,19 @@
 import { Alert } from 'react-bootstrap';
+import { useSelector } from 'react-redux';
 
-const Notification = ({ messageText }) => {
-  const message = messageText.message;
-  const styleClass = messageText.styleClassName;
+const MessageNotification = () => {
+  const notification = useSelector((state) => state.notification);
+  const { message, styleClassName } = notification;
+
   if (message === null || message === '') {
     return null;
   }
 
   return (
-    // <div className={styleClass}>
-    //   {message}
-    // </div>
     <div>
-      <Alert variant={styleClass}>{message}</Alert>
+      <Alert variant={styleClassName}>{message}</Alert>
     </div>
   );
 };
 
-export default Notification;
+export default MessageNotification;
