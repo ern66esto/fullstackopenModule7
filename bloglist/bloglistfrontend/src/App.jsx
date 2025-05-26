@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import blogService from './services/blogs';
-import loginService from './services/login';
 import LoginForm from './components/LoginForm';
 import BlogForm from './components/BlogForm';
 import { Button } from 'react-bootstrap';
@@ -8,78 +7,76 @@ import { useDispatch } from 'react-redux';
 import { setNotification, clearNotification } from './features/notification/notificationSlice';
 import MessageNotification from '../src/components/Notification';
 
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+const fetchBlogs = async () => {
+  const response = await blogService.getAll();
+  return response;
+};
+
 const App = () => {
   const [blogs, setBlogs] = useState([]);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [user, setUser] = useState(null);
   const [loginVisible, setLoginVisible] = useState(false);
   const createBlogFormRef = useRef();
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser');
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON);
-      setUser(user);
-      blogService.setToken(user.token);
-      const fetchData = async () => {
-        try {
-          const blogs = await blogService.getAll();
-          setBlogs(blogs);
-          setUsername('');
-          setPassword('');
-        } catch (_error) {
-          window.localStorage.removeItem('loggedBlogappUser');
-          setBlogs([]);
-          setUser(null);
-          setUsername('');
-          setPassword('');
-          dispatch(
-            setNotification({
-              message: 'Session expired or invalid token. Please log in again',
-              styleClassName: 'danger',
-            }),
-          );
-          setTimeout(() => {
-            dispatch(clearNotification());
-          }, 5000);
-        }
-      };
-      fetchData();
-    }
-  }, []);
+  const queryClient = useQueryClient();
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    try {
-      const user = await loginService.login({ username, password });
-      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user));
-      blogService.setToken(user.token);
-      const blogs = await blogService.getAll();
-      setBlogs(blogs);
-      setUser(user);
-      setUsername('');
-      setPassword('');
-    } catch (error) {
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    isError: isUserError,
+    error: userError,
+    isFetched: isUserFetched,
+  } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const loggedUserJSON = localStorage.getItem('loggedBlogappUser');
+      if (loggedUserJSON) {
+        return JSON.parse(loggedUserJSON);
+      }
       dispatch(
         setNotification({
-          message: `Wrong credentials ${error.message}`,
+          message: 'No user data in cache or localStorage',
           styleClassName: 'danger',
         }),
       );
       setTimeout(() => {
         dispatch(clearNotification());
       }, 5000);
-    }
-  };
+    },
+    enabled: !!localStorage.getItem('loggedBlogappUser'),
+    staleTime: Infinity,
+    retry: false,
+    onError: (error) => {
+      localStorage.removeItem('loggedBlogappUser');
+      queryClient.removeQueries(['currentUser']);
+      dispatch(
+        setNotification({
+          message: 'Session expired or invalid token. Please log in again',
+          styleClassName: 'danger',
+        }),
+      );
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
+    },
+  });
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser');
-    setBlogs([]);
-    setUser(null);
-    setUsername('');
-    setPassword('');
+    queryClient.removeQueries(['currentUser']);
+    queryClient.removeQueries(['blogs']);
+    setLoginVisible(false);
+    dispatch(
+      setNotification({
+        message: 'Logged out successfully',
+        styleClassName: 'success',
+      }),
+    );
+    setTimeout(() => {
+      dispatch(clearNotification());
+    }, 5000);
   };
 
   const addBlog = async (blogObject) => {
@@ -116,11 +113,13 @@ const App = () => {
         </div>
         <div style={showWhenVisible}>
           <LoginForm
-            username={username}
-            password={password}
-            handleUsernameChange={({ target }) => setUsername(target.value)}
-            handlePasswordChange={({ target }) => setPassword(target.value)}
-            handleLogin={handleLogin}
+            onLoginSuccess={(loggedInUser) => {
+              setLoginVisible(false);
+              queryClient.setQueryData(['currentUser'], loggedInUser);
+            }}
+            setNotification={setNotification}
+            clearNotification={clearNotification}
+            dispatch={dispatch}
           />
           <Button
             className="mt-2"
