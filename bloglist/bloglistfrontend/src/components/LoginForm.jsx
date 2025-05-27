@@ -17,8 +17,8 @@ const LoginForm = ({ onLoginSuccess, setNotification, clearNotification, dispatc
   } = useMutation({
     mutationFn: loginService.login,
     onSuccess: (data) => {
-      localStorage.setItem('loggedBlogappUser', JSON.stringify(data));
-      localStorage.setItem('userToken', JSON.stringify(data.token));
+      localStorage.setItem('loggedBlogappUser', data.token);
+      localStorage.setItem('userToken', data.token);
       queryClient.invalidateQueries(['blogs']);
       dispatch(
         setNotification({

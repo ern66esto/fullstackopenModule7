@@ -4,18 +4,19 @@ import BlogDetails from './BlogDetails';
 import { Button } from 'react-bootstrap';
 
 const BlogForm = (props) => {
-  const { blogs, handleLogout, addBlog, createBlogFormRef, handleLikes, handleDelete, user } =
-    props;
-  blogs.sort(function (a, b) {
-    if (a.likes < b.likes) {
-      return 1;
-    }
-    if (a.likes > b.likes) {
-      return -1;
-    }
+  const {
+    blogs,
+    handleLogout,
+    addBlog,
+    createBlogFormRef,
+    handleLikes,
+    handleDelete,
+    user,
+    isBlogsLoading,
+    isBlogsError,
+    blogsError,
+  } = props;
 
-    return 0;
-  });
   return (
     <div>
       <div>
@@ -33,9 +34,18 @@ const BlogForm = (props) => {
         </Togglable>
       </div>
       <div>
-        {blogs.map((b) => (
-          <BlogDetails key={b.id} blog={b} handleLikes={handleLikes} handleDelete={handleDelete} />
-        ))}
+        {blogs && !isBlogsLoading && !isBlogsError && blogs.length > 0 && (
+          <>
+            {blogs.map((b) => (
+              <BlogDetails
+                key={b.id}
+                blog={b}
+                handleLikes={handleLikes}
+                handleDelete={handleDelete}
+              />
+            ))}
+          </>
+        )}
       </div>
     </div>
   );

@@ -6,11 +6,11 @@ const CreateBlogForm = ({ createBlog }) => {
   const [author, setAuthor] = useState('');
   const [url, setUrl] = useState('');
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     if (title.trim().length > 0 && author.trim().length > 0 && url.trim().length > 0) {
       const blogObject = { title, author, url };
-      await createBlog(blogObject);
+      createBlog(blogObject);
     }
     setTitle('');
     setAuthor('');

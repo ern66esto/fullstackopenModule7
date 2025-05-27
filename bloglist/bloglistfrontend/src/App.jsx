@@ -7,19 +7,18 @@ import { useDispatch } from 'react-redux';
 import { setNotification, clearNotification } from './features/notification/notificationSlice';
 import MessageNotification from '../src/components/Notification';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
 const fetchBlogs = async () => {
   const response = await blogService.getAll();
-  return response;
+  return response.sort((a, b) => b.likes - a.likes);
 };
 
 const App = () => {
-  const [blogs, setBlogs] = useState([]);
   const [loginVisible, setLoginVisible] = useState(false);
   const createBlogFormRef = useRef();
-  const dispatch = useDispatch();
 
+  const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   const {
@@ -63,9 +62,112 @@ const App = () => {
     },
   });
 
+  const {
+    data: blogs,
+    isLoading: isBlogsLoading,
+    isError: isBlogsError,
+    error: blogsError,
+  } = useQuery({
+    queryKey: ['blogs'],
+    queryFn: fetchBlogs,
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: true,
+    onError: (err) => {
+      dispatch(
+        setNotification({
+          message: `Failed to load blogs: ${err.message || 'An error occurred'}`,
+          styleClassName: 'danger',
+        }),
+      );
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
+    },
+  });
+
+  const addBlogMutation = useMutation({
+    mutationFn: blogService.create,
+    onSuccess: (newBlog) => {
+      queryClient.invalidateQueries(['blogs']);
+      createBlogFormRef.current.toggleVisibility();
+      dispatch(
+        setNotification({
+          message: `a new blog ${newBlog.title} ! by ${newBlog.author} added!`,
+          styleClassName: 'success',
+        }),
+      );
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
+    },
+    onError: (err) => {
+      dispatch(
+        setNotification({
+          message: `Failed to add blog: ${err.message}`,
+          styleClassName: 'danger',
+        }),
+      );
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
+    },
+  });
+
+  const likeBlogMutation = useMutation({
+    mutationFn: ({ id, updatedBlog }) => blogService.update(id, updatedBlog),
+    onMutate: async (newLikeInfo) => {
+      await queryClient.cancelQueries(['blogs']);
+      const previousBlogs = queryClient.getQueriesData(['blogs']);
+
+      queryClient.setQueryData(['blogs'], (oldBlogs) => {
+        const updated = oldBlogs.map((blog) =>
+          blog.id === newLikeInfo.id ? { ...blog, likes: blog.likes + 1 } : blog,
+        );
+        return updated.sort((a, b) => b.likes - a.likes);
+      });
+
+      return { previousBlogs };
+    },
+    onError: (err, newLikeInfo, context) => {
+      queryClient.setQueryData(['blogs'], context.previousBlogs);
+      dispatch(setNotification({ message: err.message, styleClassName: 'danger' }));
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(['blogs']);
+    },
+  });
+
+  const deleteBlogMutation = useMutation({
+    mutationFn: (id) => blogService.remove(id),
+    onMutate: async (blogIdToDelete) => {
+      await queryClient.cancelQueries(['blogs']);
+      const previousBlogs = queryClient.getQueryData(['blogs']);
+
+      queryClient.setQueryData(['blogs'], (oldBlogs) =>
+        oldBlogs.filter((blog) => blog.id !== blogIdToDelete),
+      );
+
+      return { previousBlogs };
+    },
+    onError: (err, blogIdToDelete, context) => {
+      queryClient.setQueryData(['blogs'], context.previousBlogs);
+      dispatch(setNotification({ message: err.message, styleClassName: 'danger' }));
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(['blogs']);
+    },
+  });
+
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser');
-    queryClient.removeQueries(['currentUser']);
+    queryClient.removeQueries(['currentUser'], null);
     queryClient.removeQueries(['blogs']);
     setLoginVisible(false);
     dispatch(
@@ -80,26 +182,7 @@ const App = () => {
   };
 
   const addBlog = async (blogObject) => {
-    try {
-      createBlogFormRef.current.toggleVisibility();
-      const response = await blogService.create(blogObject);
-      dispatch(
-        setNotification({
-          message: `a new blog ${response.title} ! by ${response.author} added`,
-          styleClassName: 'success',
-        }),
-      );
-      setTimeout(() => {
-        dispatch(clearNotification());
-      }, 5000);
-
-      setBlogs(blogs.concat(response));
-    } catch (error) {
-      dispatch(setNotification({ message: error.message, styleClassName: 'danger' }));
-      setTimeout(() => {
-        dispatch(clearNotification());
-      }, 5000);
-    }
+    addBlogMutation.mutate(blogObject);
   };
 
   const loginForm = () => {
@@ -134,44 +217,28 @@ const App = () => {
   };
 
   const handleLikes = async (blogObject) => {
-    try {
-      const blogToUpdate = {
-        user: blogObject.user.id,
-        likes: blogObject.likes + 1,
-        author: blogObject.author,
-        title: blogObject.title,
-        url: blogObject.url,
-      };
-      const response = await blogService.update(blogObject.id, blogToUpdate);
-      setBlogs(blogs.map((blog) => (blog.id === response.id ? response : blog)));
-    } catch (error) {
-      dispatch(setNotification({ message: error.message, styleClassName: 'danger' }));
-      setTimeout(() => {
-        dispatch(clearNotification());
-      }, 5000);
-    }
+    const updatedBlog = {
+      user: blogObject.user.id,
+      likes: blogObject.likes + 1,
+      author: blogObject.author,
+      title: blogObject.title,
+      url: blogObject.url,
+    };
+    likeBlogMutation.mutate({ id: blogObject.id, updatedBlog });
   };
 
   const handleDelete = async (blogObject) => {
     if (window.confirm(`Remove blog ${blogObject.title} by ${blogObject.author}`)) {
-      try {
-        await blogService.remove(blogObject.id);
-        dispatch(
-          setNotification({
-            message: `blog ${blogObject.title} by ${blogObject.author} deleted`,
-            styleClassName: 'success',
-          }),
-        );
-        setTimeout(() => {
-          dispatch(clearNotification());
-        }, 5000);
-        setBlogs((originalBlogs) => originalBlogs.filter((blog) => blog.id !== blogObject.id));
-      } catch (error) {
-        dispatch(setNotification({ message: error.message, styleClassName: 'danger' }));
-        setTimeout(() => {
-          dispatch(clearNotification());
-        }, 5000);
-      }
+      deleteBlogMutation.mutate(blogObject.id);
+      dispatch(
+        setNotification({
+          message: `blog ${blogObject.title} by ${blogObject.author} deleted`,
+          styleClassName: 'success',
+        }),
+      );
+      setTimeout(() => {
+        dispatch(clearNotification());
+      }, 5000);
     }
   };
 
@@ -183,6 +250,9 @@ const App = () => {
     handleLikes,
     handleDelete,
     user,
+    isBlogsLoading,
+    isBlogsError,
+    blogsError,
   };
 
   return (

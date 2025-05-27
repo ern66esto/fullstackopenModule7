@@ -27,7 +27,7 @@ apiClient.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('loggedBlogappUser');
-      localStorage.removeItem('user');
+      //localStorage.removeItem('user');
     }
     return Promise.reject(error);
   },
