@@ -19,14 +19,6 @@ const BlogForm = (props) => {
 
   return (
     <div>
-      <div>
-        <div>
-          {user.name} logged in.
-          <Button variant="outline-secondary" onClick={() => handleLogout()}>
-            logout
-          </Button>
-        </div>
-      </div>
       <br />
       <div>
         <Togglable buttonLabel="new blog" ref={createBlogFormRef}>

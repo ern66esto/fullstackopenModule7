@@ -1,7 +1,12 @@
+// eslint-disable-next-line no-unused-vars
+import React from 'react';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useState, useRef } from 'react';
 import blogService from './services/blogs';
 import LoginForm from './components/LoginForm';
 import BlogForm from './components/BlogForm';
+import UsersPage from './components/UsersPage';
+import UserPage from './components/UserPage';
 import { Button } from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { setNotification, clearNotification } from './features/notification/notificationSlice';
@@ -20,13 +25,14 @@ const App = () => {
 
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const {
     data: user,
     isLoading: isUserLoading,
-    isError: isUserError,
-    error: userError,
-    isFetched: isUserFetched,
+    isError: _isUserError,
+    error: _userError,
+    isFetched: _isUserFetched,
   } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -47,7 +53,7 @@ const App = () => {
     enabled: !!localStorage.getItem('loggedBlogappUser'),
     staleTime: Infinity,
     retry: false,
-    onError: (error) => {
+    onError: (_error) => {
       localStorage.removeItem('loggedBlogappUser');
       queryClient.removeQueries(['currentUser']);
       dispatch(
@@ -179,6 +185,7 @@ const App = () => {
     setTimeout(() => {
       dispatch(clearNotification());
     }, 5000);
+    navigate('/');
   };
 
   const addBlog = async (blogObject) => {
@@ -199,6 +206,7 @@ const App = () => {
             onLoginSuccess={(loggedInUser) => {
               setLoginVisible(false);
               queryClient.setQueryData(['currentUser'], loggedInUser);
+              navigate('/');
             }}
             setNotification={setNotification}
             clearNotification={clearNotification}
@@ -259,8 +267,60 @@ const App = () => {
     <div className="container">
       <h2>blogs</h2>
       <MessageNotification />
-      {!user && loginForm()}
-      {user && <BlogForm {...BlogFormProps} />}
+      {user && (
+        <div>
+          <Link className="pe-2" to="/">
+            blogs
+          </Link>
+          <Link className="pe-2" to="/users">
+            users
+          </Link>
+          <span className="pe-2">
+            {user.name} logged in.
+            <Button variant="outline-secondary" size="sm" onClick={() => handleLogout()}>
+              logout
+            </Button>
+          </span>
+        </div>
+      )}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isUserLoading ? (
+              <div>Loading user data...</div>
+            ) : user ? (
+              <BlogForm {...BlogFormProps} />
+            ) : (
+              loginForm()
+            )
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            user ? (
+              <UsersPage user={user} />
+            ) : (
+              // If not logged in, show login form for this route too
+              loginForm()
+            )
+          }
+        />
+        <Route
+          path="/users/:id"
+          element={
+            isUserLoading ? (
+              <div>Loading user profile...</div>
+            ) : user ? (
+              <UserPage loggedInUser={user} isUserLoading={isUserLoading} />
+            ) : (
+              // If not logged in, show login form for this route too
+              loginForm()
+            )
+          }
+        />
+      </Routes>
     </div>
   );
 };
