@@ -1,21 +1,9 @@
 import CreateBlogForm from './CreateBlogForm';
 import Togglable from './Togglable';
-import BlogDetails from './BlogDetails';
-import { Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 const BlogForm = (props) => {
-  const {
-    blogs,
-    handleLogout,
-    addBlog,
-    createBlogFormRef,
-    handleLikes,
-    handleDelete,
-    user,
-    isBlogsLoading,
-    isBlogsError,
-    blogsError,
-  } = props;
+  const { blogs, addBlog, createBlogFormRef, isBlogsLoading, isBlogsError } = props;
 
   return (
     <div>
@@ -28,14 +16,15 @@ const BlogForm = (props) => {
       <div>
         {blogs && !isBlogsLoading && !isBlogsError && blogs.length > 0 && (
           <>
-            {blogs.map((b) => (
-              <BlogDetails
-                key={b.id}
-                blog={b}
-                handleLikes={handleLikes}
-                handleDelete={handleDelete}
-              />
-            ))}
+            <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
+              {blogs.map((b) => (
+                <li key={b.id}>
+                  <Link to={`/blogs/${b.id}`} state={{ blog: b }}>
+                    {b.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </>
         )}
       </div>

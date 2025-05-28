@@ -5,33 +5,50 @@ const config = require('../utils/config');
 mongoose.set('strictQuery', false);
 logger.info('connecting to', config.MONGO_URI);
 
-mongoose.connect(config.MONGO_URI)
-  .then(result => {
+mongoose
+  .connect(config.MONGO_URI)
+  .then((result) => {
     logger.info('connected to MongoDB');
   })
-  .catch(error => {
+  .catch((error) => {
     logger.error('error connecting to MongoDB', error.message);
   });
+
+const commentSchema = new mongoose.Schema({
+  content: {
+    type: String,
+    required: true,
+  },
+});
+
+commentSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
+});
 
 const blogSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   author: String,
   url: {
     type: String,
-    required: true
+    required: true,
   },
   likes: {
     type: Number,
-    default: 0
+    default: 0,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    require: true
-  }
+    require: true,
+  },
+  comments: [commentSchema],
 });
 
 blogSchema.set('toJSON', {
@@ -39,7 +56,7 @@ blogSchema.set('toJSON', {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;
-  }
+  },
 });
 
 const gracefulShutdown = () => {
@@ -51,4 +68,4 @@ const gracefulShutdown = () => {
 
 process.on('SIGINT', gracefulShutdown).on('SIGTERM', gracefulShutdown);
 
-module.exports = mongoose.model('Blog',blogSchema);
+module.exports = mongoose.model('Blog', blogSchema);

@@ -1,13 +1,22 @@
 import apiClient from './apiClient';
-import axios from 'axios';
 
 const getAll = async () => {
   const response = await apiClient.get('/blogs');
   return response.data;
 };
 
+const getById = async (id) => {
+  const response = await apiClient.get(`/blogs/${id}`);
+  return response.data;
+};
+
 const create = async (newObject) => {
   const response = await apiClient.post('/blogs', newObject);
+  return response.data;
+};
+
+const addComment = async (blogId, comment) => {
+  const response = await apiClient.post(`/blogs/${blogId}/comments`, { comment });
   return response.data;
 };
 
@@ -21,4 +30,4 @@ const remove = async (id) => {
   return response.data;
 };
 
-export default { getAll, create, update, remove };
+export default { getAll, create, update, remove, getById, addComment };

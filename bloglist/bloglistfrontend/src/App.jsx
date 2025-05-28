@@ -5,6 +5,7 @@ import { useState, useRef } from 'react';
 import blogService from './services/blogs';
 import LoginForm from './components/LoginForm';
 import BlogForm from './components/BlogForm';
+import BlogDetails from './components/BlogDetails';
 import UsersPage from './components/UsersPage';
 import UserPage from './components/UserPage';
 import { Button } from 'react-bootstrap';
@@ -72,7 +73,6 @@ const App = () => {
     data: blogs,
     isLoading: isBlogsLoading,
     isError: isBlogsError,
-    error: blogsError,
   } = useQuery({
     queryKey: ['blogs'],
     queryFn: fetchBlogs,
@@ -117,57 +117,6 @@ const App = () => {
       setTimeout(() => {
         dispatch(clearNotification());
       }, 5000);
-    },
-  });
-
-  const likeBlogMutation = useMutation({
-    mutationFn: ({ id, updatedBlog }) => blogService.update(id, updatedBlog),
-    onMutate: async (newLikeInfo) => {
-      await queryClient.cancelQueries(['blogs']);
-      const previousBlogs = queryClient.getQueriesData(['blogs']);
-
-      queryClient.setQueryData(['blogs'], (oldBlogs) => {
-        const updated = oldBlogs.map((blog) =>
-          blog.id === newLikeInfo.id ? { ...blog, likes: blog.likes + 1 } : blog,
-        );
-        return updated.sort((a, b) => b.likes - a.likes);
-      });
-
-      return { previousBlogs };
-    },
-    onError: (err, newLikeInfo, context) => {
-      queryClient.setQueryData(['blogs'], context.previousBlogs);
-      dispatch(setNotification({ message: err.message, styleClassName: 'danger' }));
-      setTimeout(() => {
-        dispatch(clearNotification());
-      }, 5000);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries(['blogs']);
-    },
-  });
-
-  const deleteBlogMutation = useMutation({
-    mutationFn: (id) => blogService.remove(id),
-    onMutate: async (blogIdToDelete) => {
-      await queryClient.cancelQueries(['blogs']);
-      const previousBlogs = queryClient.getQueryData(['blogs']);
-
-      queryClient.setQueryData(['blogs'], (oldBlogs) =>
-        oldBlogs.filter((blog) => blog.id !== blogIdToDelete),
-      );
-
-      return { previousBlogs };
-    },
-    onError: (err, blogIdToDelete, context) => {
-      queryClient.setQueryData(['blogs'], context.previousBlogs);
-      dispatch(setNotification({ message: err.message, styleClassName: 'danger' }));
-      setTimeout(() => {
-        dispatch(clearNotification());
-      }, 5000);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries(['blogs']);
     },
   });
 
@@ -224,43 +173,12 @@ const App = () => {
     );
   };
 
-  const handleLikes = async (blogObject) => {
-    const updatedBlog = {
-      user: blogObject.user.id,
-      likes: blogObject.likes + 1,
-      author: blogObject.author,
-      title: blogObject.title,
-      url: blogObject.url,
-    };
-    likeBlogMutation.mutate({ id: blogObject.id, updatedBlog });
-  };
-
-  const handleDelete = async (blogObject) => {
-    if (window.confirm(`Remove blog ${blogObject.title} by ${blogObject.author}`)) {
-      deleteBlogMutation.mutate(blogObject.id);
-      dispatch(
-        setNotification({
-          message: `blog ${blogObject.title} by ${blogObject.author} deleted`,
-          styleClassName: 'success',
-        }),
-      );
-      setTimeout(() => {
-        dispatch(clearNotification());
-      }, 5000);
-    }
-  };
-
   const BlogFormProps = {
     blogs,
-    handleLogout,
     addBlog,
     createBlogFormRef,
-    handleLikes,
-    handleDelete,
-    user,
     isBlogsLoading,
     isBlogsError,
-    blogsError,
   };
 
   return (
@@ -316,6 +234,18 @@ const App = () => {
               <UserPage loggedInUser={user} isUserLoading={isUserLoading} />
             ) : (
               // If not logged in, show login form for this route too
+              loginForm()
+            )
+          }
+        />
+        <Route
+          path="/blogs/:id"
+          element={
+            isUserLoading ? (
+              <div>Loading user profile...</div>
+            ) : user ? (
+              <BlogDetails user={user} />
+            ) : (
               loginForm()
             )
           }
